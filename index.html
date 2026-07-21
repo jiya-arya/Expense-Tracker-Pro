@@ -321,11 +321,11 @@ let editing = { type:null, id:null };
 
 async function loadData(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, false);
-    if(res && res.value){
-      return JSON.parse(res.value);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      return JSON.parse(raw);
     }
-  }catch(e){ /* key doesn't exist yet */ }
+  }catch(e){ /* localStorage unavailable or key doesn't exist yet */ }
   // seed on first run
   await saveData(DEFAULT_DATA);
   return JSON.parse(JSON.stringify(DEFAULT_DATA));
@@ -333,11 +333,11 @@ async function loadData(){
 
 async function saveData(data){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(data), false);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     return true;
   }catch(e){
     console.error('Storage save failed', e);
-    showToast('Could not save — please try again');
+    showToast('Could not save — your browser may be blocking storage');
     return false;
   }
 }
