@@ -258,6 +258,7 @@
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
   .acct-name-edit{ font-size:13px; color:var(--ink-soft); }
+  .acct-open-input{ max-width:110px; font-size:13px; color:var(--ink-soft); }
   @media (max-width:640px){
     .stat-grid{ grid-template-columns: 1fr; }
     .tab{ font-size:13px; padding:10px 12px 8px; }
@@ -405,12 +406,16 @@ function classifyAccount(name){
   return { label, type };
 }
 
-function renderDashboard(){
-  const accts = DATA.accounts.map(a=>{
+function computeAccounts(){
+  return DATA.accounts.map(a=>{
     const inc = DATA.income.filter(r=>r.account===a.name).reduce((s,r)=>s+Number(r.amount||0),0);
     const exp = DATA.expense.filter(r=>r.account===a.name).reduce((s,r)=>s+Number(r.amount||0),0);
     return { ...a, inc, exp, balance: a.opening + inc - exp };
   });
+}
+
+function renderDashboard(){
+  const accts = computeAccounts();
 
   const totalOpening = accts.reduce((s,a)=>s+a.opening,0);
   const totalInc = accts.reduce((s,a)=>s+a.inc,0);
@@ -661,14 +666,16 @@ function renderSettings(){
     <p class="sub">Manage your accounts, opening balances, income sources, expense categories and people.</p>
 
     <div class="settings-block">
-      <h3>Accounts &amp; Opening Balances</h3>
+      <h3>Accounts &amp; Current Balances</h3>
+      <p class="sub" style="margin-bottom:14px;">Current balance updates automatically as you add income and expense. Opening balance is only the starting point — edit it if it was wrong, it's tucked away small on purpose.</p>
       <table>
-        <thead><tr><th>Account name</th><th class="num">Opening Balance</th><th></th></tr></thead>
+        <thead><tr><th>Account name</th><th class="num">Current Balance</th><th class="num">Opening Bal.</th><th></th></tr></thead>
         <tbody>
-          ${DATA.accounts.map((a,i)=>`
+          ${computeAccounts().map((a,i)=>`
             <tr>
               <td><input type="text" data-acct-name="${i}" value="${a.name.replace(/"/g,'&quot;')}"></td>
-              <td><input type="number" step="0.01" class="num" data-acct-open="${i}" value="${a.opening}"></td>
+              <td class="num" style="font-weight:700; font-family:'IBM Plex Mono',monospace; color:${a.balance>=0?'var(--green)':'var(--rust)'};">${fmt(a.balance)}</td>
+              <td><input type="number" step="0.01" class="num acct-open-input" data-acct-open="${i}" value="${a.opening}" title="Opening balance"></td>
               <td><button class="btn-icon" data-acct-del="${i}" title="Remove">🗑</button></td>
             </tr>`).join('')}
         </tbody>
