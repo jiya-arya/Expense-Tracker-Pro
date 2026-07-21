@@ -280,9 +280,29 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase (Firestore) — used for cross-device, real-time sync. No login required. -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
 <script>
-// ---------- Storage ----------
-const STORAGE_KEY = 'ledger-data';
+// ============ FIREBASE CONFIG — REPLACE WITH YOUR OWN PROJECT'S VALUES ============
+// Get this from: Firebase Console → Project Settings → General → "Your apps" → SDK setup and configuration
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const ledgerDocRef = db.collection('ledger').doc('data');
+// ===================================================================================
+</script>
+
+<script>
+// ---------- Storage (Firebase Firestore — real-time, cross-device) ----------
 
 const DEFAULT_DATA = {
   accounts: [
@@ -319,25 +339,50 @@ let DATA = null;
 let currentTab = 'dashboard';
 let editing = { type:null, id:null };
 
-async function loadData(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){
-      return JSON.parse(raw);
-    }
-  }catch(e){ /* localStorage unavailable or key doesn't exist yet */ }
-  // seed on first run
-  await saveData(DEFAULT_DATA);
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+async function initFirestore(){
+  return new Promise((resolve)=>{
+    let first = true;
+    ledgerDocRef.onSnapshot(async (snap)=>{
+      // Ignore the local echo of our own writes — we already have this data locally.
+      // Only react when the change came from Firestore (i.e. another device), or on initial load.
+      if(snap.metadata.hasPendingWrites && !first) return;
+
+      if(snap.exists){
+        DATA = snap.data();
+      } else {
+        // First-ever run for this Firestore project: seed it with the starting data.
+        DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        try{ await ledgerDocRef.set(DATA); }catch(e){ console.error(e); }
+      }
+
+      if(first){
+        first = false;
+        resolve();
+      } else {
+        // Don't yank the page out from under someone mid-edit — the next
+        // render (after they save/cancel) will pick up the latest data anyway.
+        if(!editing.id) renderPage();
+        showToast('Updated from another device');
+      }
+    }, (err)=>{
+      console.error('Firestore connection error', err);
+      showToast('Could not connect — check Firebase config / internet connection');
+      if(first){
+        first = false;
+        DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        resolve();
+      }
+    });
+  });
 }
 
 async function saveData(data){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    await ledgerDocRef.set(data);
     return true;
   }catch(e){
     console.error('Storage save failed', e);
-    showToast('Could not save — your browser may be blocking storage');
+    showToast('Could not save — check your internet connection');
     return false;
   }
 }
@@ -795,8 +840,8 @@ function bindSettings(){
 
 // ---------- Init ----------
 (async function init(){
-  document.getElementById('page').innerHTML = '<div class="empty">Loading your ledger…</div>';
-  DATA = await loadData();
+  document.getElementById('page').innerHTML = '<div class="empty">Connecting to shared ledger…</div>';
+  await initFirestore();
   renderTabs();
   renderPage();
 })();
