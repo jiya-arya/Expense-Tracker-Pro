@@ -1,79 +1,798 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Tracker Pro</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chinu & Charu Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon: #7A1F2B;
+    --maroon-dark: #5C1620;
+    --gold: #C9A227;
+    --gold-soft: #E4C765;
+    --paper: #FBF6EA;
+    --paper-line: #E7DEC6;
+    --ink: #2B2118;
+    --ink-soft: #6B5F4F;
+    --green: #3F7D52;
+    --green-soft: #E4EFE6;
+    --rust: #B5482B;
+    --rust-soft: #F5E5DE;
+    --teal: #2E6E6E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: linear-gradient(180deg, #EFE6CC 0%, #E7DEC0 100%);
+    font-family:'Source Sans 3', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .cover{
+    background: linear-gradient(160deg, var(--maroon) 0%, var(--maroon-dark) 100%);
+    padding:28px 24px 44px;
+    position:relative;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  }
+  .cover::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:6px;
+    background: repeating-linear-gradient(90deg, var(--gold) 0 22px, transparent 22px 30px);
+    opacity:0.85;
+  }
+  .cover h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--gold-soft);
+    margin:0 0 4px;
+    letter-spacing:0.3px;
+  }
+  .cover p{
+    margin:0;
+    color: #EADFC6;
+    font-size:14px;
+    letter-spacing:0.4px;
+  }
+  .wrap{
+    max-width: 980px;
+    margin: -26px auto 40px;
+    padding: 0 16px;
+  }
+  .tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:0;
+    padding-left:6px;
+  }
+  .tab{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+    padding:12px 20px 10px;
+    background: var(--gold);
+    color: var(--maroon-dark);
+    border:none;
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+    opacity:0.65;
+    transform: translateY(4px);
+    transition: all .15s ease;
+  }
+  .tab.active{
+    opacity:1;
+    background: var(--paper);
+    transform: translateY(0);
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+  }
+  .page{
+    background: var(--paper);
+    border-radius: 0 12px 12px 12px;
+    box-shadow: 0 10px 30px rgba(60,40,10,0.15);
+    padding: 26px 24px 30px;
+    background-image: repeating-linear-gradient(180deg, transparent 0 38px, var(--paper-line) 38px 39px);
+    background-position: 0 90px;
+    min-height: 420px;
+  }
+  h2.section-title{
+    font-family:'Fraunces', serif;
+    color: var(--maroon);
+    font-size:22px;
+    margin: 0 0 4px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .sub{
+    color: var(--ink-soft);
+    font-size:13px;
+    margin: 0 0 20px;
+  }
+  table{
+    width:100%;
+    border-collapse: collapse;
+    font-size:14px;
+    margin-bottom: 26px;
+  }
+  th{
+    text-align:left;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color: var(--ink-soft);
+    border-bottom: 2px solid var(--maroon);
+    padding: 6px 10px;
+  }
+  td{
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--paper-line);
+    vertical-align:middle;
+  }
+  tr.total-row td{
+    font-weight:700;
+    border-top:2px solid var(--maroon);
+    border-bottom:none;
+    background: rgba(201,162,39,0.12);
+  }
+  .num{ font-family:'IBM Plex Mono', monospace; text-align:right; white-space:nowrap;}
+  .pos{ color:var(--green); }
+  .neg{ color:var(--rust); }
+  .pill{
+    display:inline-block;
+    padding:2px 9px;
+    border-radius:100px;
+    font-size:11px;
+    font-weight:600;
+    background: var(--green-soft); color: var(--green);
+  }
+  .pill.expense{ background: var(--rust-soft); color:var(--rust); }
 
-    <link rel="stylesheet" href="./css/style.css">
+  .stat-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:14px;
+    margin-bottom:24px;
+  }
+  .stat-card{
+    background: #fff;
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    padding:14px 16px;
+    box-shadow: 0 2px 6px rgba(60,40,10,0.06);
+  }
+  .stat-card .label{ font-size:12px; color:var(--ink-soft); margin-bottom:4px;}
+  .stat-card .value{ font-family:'IBM Plex Mono', monospace; font-size:22px; font-weight:600;}
+
+  .btn{
+    font-family:'Source Sans 3', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:9px 16px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    transition: all .12s ease;
+  }
+  .btn-primary{ background: var(--maroon); color:#fff; }
+  .btn-primary:hover{ background: var(--maroon-dark); }
+  .btn-ghost{ background: transparent; color: var(--maroon); border:1px solid var(--maroon); }
+  .btn-ghost:hover{ background: rgba(122,31,43,0.06); }
+  .btn-icon{
+    background:none; border:none; cursor:pointer; font-size:14px; color:var(--ink-soft);
+    padding:2px 6px; border-radius:6px;
+  }
+  .btn-icon:hover{ background: var(--paper-line); color:var(--ink); }
+
+  .form-card{
+    background:#fff;
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    padding:18px 20px;
+    margin-bottom:24px;
+    box-shadow: 0 2px 6px rgba(60,40,10,0.06);
+  }
+  .form-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap:12px;
+    margin-bottom:14px;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+    font-weight:600;
+  }
+  input, select, textarea{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--paper-line);
+    border-radius:7px;
+    font-family:'Source Sans 3', sans-serif;
+    font-size:14px;
+    background:#FFFDF8;
+    color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:2px solid var(--gold);
+    outline-offset:1px;
+    border-color: var(--gold);
+  }
+  .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .empty{
+    text-align:center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+    font-style:italic;
+  }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 10px;}
+  .chip{
+    display:flex; align-items:center; gap:6px;
+    background: var(--paper); border:1px solid var(--gold);
+    padding:5px 8px 5px 12px; border-radius:100px; font-size:13px;
+  }
+  .chip button{
+    background:none; border:none; cursor:pointer; color:var(--rust); font-weight:700; font-size:13px; line-height:1;
+    padding: 2px 4px;
+  }
+  .settings-block{
+    background:#fff; border:1px solid var(--paper-line); border-radius:10px;
+    padding:16px 18px; margin-bottom:18px;
+  }
+  .settings-block h3{
+    font-family:'Fraunces', serif; font-size:16px; color:var(--maroon); margin:0 0 12px;
+  }
+  .inline-add{ display:flex; gap:8px; }
+  .inline-add input{ flex:1; }
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background: var(--maroon); color:#fff; padding:10px 20px; border-radius:8px;
+    font-size:13px; box-shadow:0 6px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition: opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px); }
+  .acct-name-edit{ font-size:13px; color:var(--ink-soft); }
+  @media (max-width:640px){
+    .stat-grid{ grid-template-columns: 1fr; }
+    .tab{ font-size:13px; padding:10px 12px 8px; }
+    table{ font-size:12.5px; }
+  }
+</style>
 </head>
-
 <body>
 
-    <header class="header">
+<div class="cover">
+  <h1>Chinu &amp; Charu</h1>
+  <p>Income · Expense Ledger — Cocochet · saved automatically, no sign-in needed</p>
+</div>
 
-        <a href="#" class="logo">
-            ExpenseTracker
-        </a>
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+  <div class="page" id="page"></div>
+</div>
 
-        <nav class="navigation">
+<div class="toast" id="toast"></div>
 
-            <button class="btn btn--secondary">
-                Login
-            </button>
+<script>
+// ---------- Storage ----------
+const STORAGE_KEY = 'ledger-data';
 
-        </nav>
+const DEFAULT_DATA = {
+  accounts: [
+    { name:'Chinu Bank', opening:11775 },
+    { name:'Charu Bank', opening:4395 },
+    { name:'Cocochet Account', opening:0 },
+    { name:'Post Office', opening:6000 },
+    { name:'Chinu Cash', opening:0 },
+    { name:'Charu Cash', opening:200 },
+    { name:'Cocochet Cash', opening:0 },
+    { name:'Ghar Cash (Home)', opening:10200 }
+  ],
+  sources: ['Mehendi','Crochet','Tuition','Relative se Mila','Transfer (Account se Account)','Other'],
+  categories: ['Business Expense','Personal Kharch','Ghar Kharch','Mummy ko Diye','Transfer (Account se Account)','Savings','Other'],
+  people: ['Chinu','Charu'],
+  income: [
+    { id: 'i1', date:'2026-07-18', source:'Tuition', desc:'tuition fee', amount:1300, account:'Chinu Cash', person:'Chinu', notes:'' },
+    { id: 'i2', date:'2026-07-16', source:'Relative se Mila', desc:'harela festival', amount:50, account:'Charu Cash', person:'Charu', notes:'' },
+    { id: 'i3', date:'2026-07-16', source:'Relative se Mila', desc:'harela festival', amount:50, account:'Chinu Cash', person:'Chinu', notes:'' },
+    { id: 'i4', date:'2026-07-16', source:'Relative se Mila', desc:'harela festival', amount:25, account:'Charu Bank', person:'Charu', notes:'' },
+    { id: 'i5', date:'2026-07-16', source:'Relative se Mila', desc:'harela festival', amount:25, account:'Chinu Bank', person:'Chinu', notes:'' },
+    { id: 'i6', date:'2026-07-19', source:'Crochet', desc:'varsha', amount:300, account:'Cocochet Account', person:'Charu', notes:'' },
+    { id: 'i7', date:'2026-07-19', source:'Crochet', desc:'Ankita', amount:160, account:'Cocochet Cash', person:'Charu', notes:'' },
+    { id: 'i8', date:'2026-07-19', source:'Crochet', desc:'khushi di', amount:300, account:'Cocochet Account', person:'Charu', notes:'' }
+  ],
+  expense: [
+    { id: 'e1', date:'2026-07-19', category:'Other', desc:'july 1 - 18', amount:1800, account:'Chinu Bank', person:'Chinu', notes:'' },
+    { id: 'e2', date:'2026-07-19', category:'Other', desc:'july 1 - 18', amount:3266, account:'Charu Bank', person:'Charu', notes:'' },
+    { id: 'e3', date:'2026-07-20', category:'Mummy ko Diye', desc:'for savan vrat', amount:500, account:'Chinu Cash', person:'Chinu', notes:'' }
+  ]
+};
 
-    </header>
+let DATA = null;
+let currentTab = 'dashboard';
+let editing = { type:null, id:null };
 
-    <main>
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      return JSON.parse(res.value);
+    }
+  }catch(e){ /* key doesn't exist yet */ }
+  // seed on first run
+  await saveData(DEFAULT_DATA);
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
 
-        <section class="hero">
+async function saveData(data){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(data), false);
+    return true;
+  }catch(e){
+    console.error('Storage save failed', e);
+    showToast('Could not save — please try again');
+    return false;
+  }
+}
 
-            <div class="hero__content">
+function uid(prefix){
+  return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
 
-                <span class="hero__badge">
-                    Made for Students
-                </span>
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=> t.classList.remove('show'), 2200);
+}
 
-                <h1 class="hero__title">
-                    Track Every Rupee.
-                    Build Better Money Habits.
-                </h1>
+function fmt(n){
+  const num = Number(n)||0;
+  return '₹' + num.toLocaleString('en-IN');
+}
 
-                <p class="hero__description">
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
 
-                    Manage your income, expenses, and savings in one place.
-                    Stay organized, understand your spending, and take control
-                    of your student budget.
+// ---------- Tabs ----------
+const TABS = [
+  { id:'dashboard', label:'Dashboard' },
+  { id:'income', label:'Income' },
+  { id:'expense', label:'Expense' },
+  { id:'settings', label:'Accounts & Lists' }
+];
 
-                </p>
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  el.innerHTML = TABS.map(t => `<button class="tab ${t.id===currentTab?'active':''}" data-tab="${t.id}">${t.label}</button>`).join('');
+  el.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentTab = btn.dataset.tab;
+      editing = { type:null, id:null };
+      renderTabs();
+      renderPage();
+    });
+  });
+}
 
-                <div class="hero__actions">
+function renderPage(){
+  const page = document.getElementById('page');
+  if(currentTab==='dashboard') page.innerHTML = renderDashboard();
+  else if(currentTab==='income') { page.innerHTML = renderEntryTab('income'); bindEntryTab('income'); return; }
+  else if(currentTab==='expense') { page.innerHTML = renderEntryTab('expense'); bindEntryTab('expense'); return; }
+  else if(currentTab==='settings') { page.innerHTML = renderSettings(); bindSettings(); return; }
+}
 
-                    <button class="btn btn--primary">
-                        Get Started
-                    </button>
+// ---------- Dashboard ----------
+function classifyAccount(name){
+  let type, label;
+  if(/\bCash\b/i.test(name)){ type='cash'; label = name.replace(/\bCash\b/i,'').replace(/\s+/g,' ').trim(); }
+  else if(/\bBank\b/i.test(name)){ type='online'; label = name.replace(/\bBank\b/i,'').replace(/\s+/g,' ').trim(); }
+  else if(/\bAccount\b/i.test(name)){ type='online'; label = name.replace(/\bAccount\b/i,'').replace(/\s+/g,' ').trim(); }
+  else { type='online'; label = name.trim(); }
+  if(!label) label = name;
+  return { label, type };
+}
 
-                    <button class="btn btn--outline">
-                        Login
-                    </button>
+function renderDashboard(){
+  const accts = DATA.accounts.map(a=>{
+    const inc = DATA.income.filter(r=>r.account===a.name).reduce((s,r)=>s+Number(r.amount||0),0);
+    const exp = DATA.expense.filter(r=>r.account===a.name).reduce((s,r)=>s+Number(r.amount||0),0);
+    return { ...a, inc, exp, balance: a.opening + inc - exp };
+  });
 
-                </div>
+  const totalOpening = accts.reduce((s,a)=>s+a.opening,0);
+  const totalInc = accts.reduce((s,a)=>s+a.inc,0);
+  const totalExp = accts.reduce((s,a)=>s+a.exp,0);
+  const totalBal = accts.reduce((s,a)=>s+a.balance,0);
+  const net = totalInc - totalExp;
 
-            </div>
+  const bySource = {};
+  DATA.sources.forEach(s=> bySource[s]=0);
+  DATA.income.forEach(r=>{ bySource[r.source] = (bySource[r.source]||0) + Number(r.amount||0); });
 
-            <div class="hero__image">
+  const byCategory = {};
+  DATA.categories.forEach(c=> byCategory[c]=0);
+  DATA.expense.forEach(r=>{ byCategory[r.category] = (byCategory[r.category]||0) + Number(r.amount||0); });
 
-                <img src="./assets/images/hero-placeholder.svg" alt="Expense Tracker Illustration">
+  const groups = {};
+  DATA.accounts.forEach(a=>{
+    const { label, type } = classifyAccount(a.name);
+    if(!groups[label]) groups[label] = { cashInc:0, cashExp:0, onlineInc:0, onlineExp:0, hasCash:false, hasOnline:false };
+    const inc = DATA.income.filter(r=>r.account===a.name).reduce((s,r)=>s+Number(r.amount||0),0);
+    const exp = DATA.expense.filter(r=>r.account===a.name).reduce((s,r)=>s+Number(r.amount||0),0);
+    if(type==='cash'){ groups[label].cashInc += inc; groups[label].cashExp += exp; groups[label].hasCash = true; }
+    else { groups[label].onlineInc += inc; groups[label].onlineExp += exp; groups[label].hasOnline = true; }
+  });
 
-            </div>
+  return `
+    <h2 class="section-title">📖 Dashboard</h2>
+    <p class="sub">Everything below is calculated automatically from your Income and Expense entries.</p>
 
-        </section>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="label">Total Income</div>
+        <div class="value pos">${fmt(totalInc)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total Expense</div>
+        <div class="value neg">${fmt(totalExp)}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Net Savings</div>
+        <div class="value ${net>=0?'pos':'neg'}">${fmt(net)}</div>
+      </div>
+    </div>
 
-    </main>
+    <h2 class="section-title" style="font-size:17px;">Account-wise Balance</h2>
+    <table>
+      <thead><tr><th>Account</th><th class="num">Opening</th><th class="num">Income</th><th class="num">Expense</th><th class="num">Current Balance</th></tr></thead>
+      <tbody>
+        ${accts.map(a=>`
+          <tr>
+            <td>${a.name}</td>
+            <td class="num">${fmt(a.opening)}</td>
+            <td class="num pos">${fmt(a.inc)}</td>
+            <td class="num neg">${fmt(a.exp)}</td>
+            <td class="num" style="font-weight:700;">${fmt(a.balance)}</td>
+          </tr>`).join('')}
+        <tr class="total-row">
+          <td>TOTAL</td>
+          <td class="num">${fmt(totalOpening)}</td>
+          <td class="num">${fmt(totalInc)}</td>
+          <td class="num">${fmt(totalExp)}</td>
+          <td class="num">${fmt(totalBal)}</td>
+        </tr>
+      </tbody>
+    </table>
 
+    <h2 class="section-title" style="font-size:17px;">Income by Source</h2>
+    <table>
+      <thead><tr><th>Source</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        ${Object.entries(bySource).map(([k,v])=>`<tr><td>${k}</td><td class="num">${fmt(v)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+
+    <h2 class="section-title" style="font-size:17px;">Expense by Category</h2>
+    <table>
+      <thead><tr><th>Category</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+        ${Object.entries(byCategory).map(([k,v])=>`<tr><td>${k}</td><td class="num">${fmt(v)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+
+    <h2 class="section-title" style="font-size:17px;">Cash vs Online</h2>
+    <table>
+      <thead><tr><th>Person / Group</th><th class="num">Cash Income</th><th class="num">Cash Expense</th><th class="num">Online Income</th><th class="num">Online Expense</th></tr></thead>
+      <tbody>
+        ${Object.entries(groups).map(([label,g])=>`
+          <tr>
+            <td>${label}</td>
+            <td class="num">${g.hasCash ? fmt(g.cashInc) : '—'}</td>
+            <td class="num">${g.hasCash ? fmt(g.cashExp) : '—'}</td>
+            <td class="num">${g.hasOnline ? fmt(g.onlineInc) : '—'}</td>
+            <td class="num">${g.hasOnline ? fmt(g.onlineExp) : '—'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// ---------- Income / Expense entry tabs ----------
+function renderEntryTab(type){
+  const isIncome = type==='income';
+  const rows = DATA[type].slice().sort((a,b)=> (b.date||'').localeCompare(a.date||''));
+  const catField = isIncome ? 'source' : 'category';
+  const catList = isIncome ? DATA.sources : DATA.categories;
+  const acctOptions = DATA.accounts.map(a=>a.name);
+  const peopleOptions = DATA.people;
+
+  const editRow = editing.type===type ? rows.find(r=>r.id===editing.id) : null;
+  const formTitle = editRow ? `Edit ${isIncome?'income':'expense'} entry` : `Add ${isIncome?'income':'expense'} entry`;
+
+  const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
+
+  return `
+    <h2 class="section-title">${isIncome?'💰':'🧾'} ${isIncome?'Income':'Expense'}</h2>
+    <p class="sub">${isIncome ? 'Every rupee that came in — amount always positive.' : 'Every rupee spent — amount always positive.'}</p>
+
+    <div class="form-card">
+      <div style="font-weight:700; margin-bottom:12px; color:var(--maroon);">${formTitle}</div>
+      <form id="entry-form">
+        <div class="form-grid">
+          <div>
+            <label>Date</label>
+            <input type="date" name="date" required value="${editRow ? editRow.date : new Date().toISOString().slice(0,10)}">
+          </div>
+          <div>
+            <label>${isIncome?'Source':'Category'}</label>
+            <select name="${catField}">
+              ${catList.map(c=>`<option value="${c}" ${editRow && editRow[catField]===c ? 'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Description</label>
+            <input type="text" name="desc" placeholder="e.g. tuition fee" value="${editRow ? editRow.desc.replace(/"/g,'&quot;') : ''}">
+          </div>
+          <div>
+            <label>Amount (Rs.)</label>
+            <input type="number" name="amount" min="0" step="0.01" required value="${editRow ? editRow.amount : ''}">
+          </div>
+          <div>
+            <label>${isIncome?'Received In':'Paid From'} (Account)</label>
+            <select name="account">
+              ${acctOptions.map(a=>`<option value="${a}" ${editRow && editRow.account===a ? 'selected':''}>${a}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>${isIncome?'Received By':'Paid By'}</label>
+            <select name="person">
+              ${peopleOptions.map(p=>`<option value="${p}" ${editRow && editRow.person===p ? 'selected':''}>${p}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label>Notes</label>
+            <input type="text" name="notes" placeholder="optional" value="${editRow ? (editRow.notes||'').replace(/"/g,'&quot;') : ''}">
+          </div>
+        </div>
+        <div class="row-actions">
+          ${editRow ? `<button type="button" class="btn btn-ghost" id="cancel-edit">Cancel</button>` : ''}
+          <button type="submit" class="btn btn-primary">${editRow ? 'Save changes' : 'Add entry'}</button>
+        </div>
+      </form>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th><th>${isIncome?'Source':'Category'}</th><th>Description</th>
+          <th class="num">Amount</th><th>${isIncome?'Account':'Account'}</th><th>${isIncome?'By':'By'}</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.length===0 ? '' : rows.map(r=>`
+          <tr>
+            <td>${fmtDate(r.date)}</td>
+            <td><span class="pill ${isIncome?'':'expense'}">${r[catField]}</span></td>
+            <td>${r.desc||''}${r.notes ? `<div style="font-size:11px;color:var(--ink-soft);">${r.notes}</div>`:''}</td>
+            <td class="num ${isIncome?'pos':'neg'}">${fmt(r.amount)}</td>
+            <td>${r.account}</td>
+            <td>${r.person}</td>
+            <td class="row-actions">
+              <button class="btn-icon" data-edit="${r.id}" title="Edit">✎</button>
+              <button class="btn-icon" data-del="${r.id}" title="Delete">🗑</button>
+            </td>
+          </tr>`).join('')}
+        ${rows.length ? `<tr class="total-row"><td colspan="3">TOTAL</td><td class="num">${fmt(total)}</td><td colspan="3"></td></tr>` : ''}
+      </tbody>
+    </table>
+    ${rows.length===0 ? '<div class="empty">No entries yet — add your first one above.</div>' : ''}
+  `;
+}
+
+function bindEntryTab(type){
+  const form = document.getElementById('entry-form');
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(form);
+    const catField = type==='income' ? 'source' : 'category';
+    const entry = {
+      date: fd.get('date'),
+      desc: fd.get('desc') || '',
+      amount: parseFloat(fd.get('amount')) || 0,
+      account: fd.get('account'),
+      person: fd.get('person'),
+      notes: fd.get('notes') || ''
+    };
+    entry[catField] = fd.get(catField);
+
+    if(editing.type===type && editing.id){
+      const idx = DATA[type].findIndex(r=>r.id===editing.id);
+      if(idx>-1) DATA[type][idx] = { ...DATA[type][idx], ...entry };
+      showToast('Entry updated');
+    } else {
+      entry.id = uid(type==='income'?'i':'e');
+      DATA[type].push(entry);
+      showToast('Entry added');
+    }
+    editing = { type:null, id:null };
+    await saveData(DATA);
+    renderPage();
+  });
+
+  const cancelBtn = document.getElementById('cancel-edit');
+  if(cancelBtn) cancelBtn.addEventListener('click', ()=>{ editing = {type:null,id:null}; renderPage(); });
+
+  document.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      editing = { type, id: btn.dataset.edit };
+      renderPage();
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+  });
+
+  document.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Delete this entry?')) return;
+      DATA[type] = DATA[type].filter(r=>r.id!==btn.dataset.del);
+      await saveData(DATA);
+      showToast('Entry deleted');
+      renderPage();
+    });
+  });
+}
+
+// ---------- Settings ----------
+function renderSettings(){
+  return `
+    <h2 class="section-title">⚙️ Accounts & Lists</h2>
+    <p class="sub">Manage your accounts, opening balances, income sources, expense categories and people.</p>
+
+    <div class="settings-block">
+      <h3>Accounts &amp; Opening Balances</h3>
+      <table>
+        <thead><tr><th>Account name</th><th class="num">Opening Balance</th><th></th></tr></thead>
+        <tbody>
+          ${DATA.accounts.map((a,i)=>`
+            <tr>
+              <td><input type="text" data-acct-name="${i}" value="${a.name.replace(/"/g,'&quot;')}"></td>
+              <td><input type="number" step="0.01" class="num" data-acct-open="${i}" value="${a.opening}"></td>
+              <td><button class="btn-icon" data-acct-del="${i}" title="Remove">🗑</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="inline-add">
+        <input type="text" id="new-acct-name" placeholder="New account name">
+        <input type="number" id="new-acct-open" placeholder="Opening balance" style="max-width:160px;">
+        <button class="btn btn-primary" id="add-acct">Add account</button>
+      </div>
+    </div>
+
+    <div class="settings-block">
+      <h3>Income Sources</h3>
+      <div class="chip-row" id="sources-chips">
+        ${DATA.sources.map((s,i)=>`<span class="chip">${s} <button data-list="sources" data-idx="${i}">×</button></span>`).join('')}
+      </div>
+      <div class="inline-add">
+        <input type="text" id="new-source" placeholder="New source name">
+        <button class="btn btn-ghost" id="add-source">Add</button>
+      </div>
+    </div>
+
+    <div class="settings-block">
+      <h3>Expense Categories</h3>
+      <div class="chip-row" id="categories-chips">
+        ${DATA.categories.map((c,i)=>`<span class="chip">${c} <button data-list="categories" data-idx="${i}">×</button></span>`).join('')}
+      </div>
+      <div class="inline-add">
+        <input type="text" id="new-category" placeholder="New category name">
+        <button class="btn btn-ghost" id="add-category">Add</button>
+      </div>
+    </div>
+
+    <div class="settings-block">
+      <h3>People</h3>
+      <div class="chip-row" id="people-chips">
+        ${DATA.people.map((p,i)=>`<span class="chip">${p} <button data-list="people" data-idx="${i}">×</button></span>`).join('')}
+      </div>
+      <div class="inline-add">
+        <input type="text" id="new-person" placeholder="New person name">
+        <button class="btn btn-ghost" id="add-person">Add</button>
+      </div>
+    </div>
+  `;
+}
+
+function bindSettings(){
+  document.querySelectorAll('[data-acct-name]').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const i = parseInt(inp.dataset.acctName);
+      const oldName = DATA.accounts[i].name;
+      const newName = inp.value.trim();
+      if(!newName) { inp.value = oldName; return; }
+      DATA.accounts[i].name = newName;
+      DATA.income.forEach(r=>{ if(r.account===oldName) r.account = newName; });
+      DATA.expense.forEach(r=>{ if(r.account===oldName) r.account = newName; });
+      await saveData(DATA);
+      showToast('Account renamed');
+      renderPage();
+    });
+  });
+  document.querySelectorAll('[data-acct-open]').forEach(inp=>{
+    inp.addEventListener('change', async ()=>{
+      const i = parseInt(inp.dataset.acctOpen);
+      DATA.accounts[i].opening = parseFloat(inp.value)||0;
+      await saveData(DATA);
+      showToast('Opening balance updated');
+    });
+  });
+  document.querySelectorAll('[data-acct-del]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const i = parseInt(btn.dataset.acctDel);
+      if(!confirm(`Remove account "${DATA.accounts[i].name}"? Existing entries using it will keep the old name as text.`)) return;
+      DATA.accounts.splice(i,1);
+      await saveData(DATA);
+      showToast('Account removed');
+      renderPage();
+    });
+  });
+  document.getElementById('add-acct').addEventListener('click', async ()=>{
+    const nameInp = document.getElementById('new-acct-name');
+    const openInp = document.getElementById('new-acct-open');
+    const name = nameInp.value.trim();
+    if(!name) return;
+    DATA.accounts.push({ name, opening: parseFloat(openInp.value)||0 });
+    await saveData(DATA);
+    showToast('Account added');
+    renderPage();
+  });
+
+  function bindList(listKey, addBtnId, inputId){
+    document.getElementById(addBtnId).addEventListener('click', async ()=>{
+      const inp = document.getElementById(inputId);
+      const val = inp.value.trim();
+      if(!val) return;
+      DATA[listKey].push(val);
+      await saveData(DATA);
+      showToast('Added');
+      renderPage();
+    });
+  }
+  bindList('sources','add-source','new-source');
+  bindList('categories','add-category','new-category');
+  bindList('people','add-person','new-person');
+
+  document.querySelectorAll('[data-list]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const key = btn.dataset.list;
+      const idx = parseInt(btn.dataset.idx);
+      DATA[key].splice(idx,1);
+      await saveData(DATA);
+      showToast('Removed');
+      renderPage();
+    });
+  });
+}
+
+// ---------- Init ----------
+(async function init(){
+  document.getElementById('page').innerHTML = '<div class="empty">Loading your ledger…</div>';
+  DATA = await loadData();
+  renderTabs();
+  renderPage();
+})();
+</script>
 </body>
-
 </html>
